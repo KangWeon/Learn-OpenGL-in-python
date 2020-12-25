@@ -40,8 +40,13 @@ def window_resize(window, width, height):
 if not glfw.init():
     raise Exception("glfw can not be initialized!")
 
+glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
+glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 1)
+glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+
 # creating the window
-window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
+window = glfw.create_window(1024, 768, "My OpenGL window", None, None)
 
 # check if window was created
 if not window:
@@ -49,7 +54,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # set the callback function for window resize
 glfw.set_window_size_callback(window, window_resize)
@@ -77,6 +82,9 @@ indices = [0, 1, 2, 2, 3, 0,
 vertices = np.array(vertices, dtype=np.float32)
 indices = np.array(indices, dtype=np.uint32)
 
+VAO = glGenVertexArrays(1)
+glBindVertexArray(VAO)
+
 shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 
 # Vertex Buffer Object
@@ -95,7 +103,8 @@ glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(0))
 glEnableVertexAttribArray(1)
 glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(12))
 
-glUseProgram(shader)
+glBindVertexArray(0)
+
 glClearColor(0, 0.1, 0.1, 1)
 glEnable(GL_DEPTH_TEST)
 
@@ -110,11 +119,14 @@ while not glfw.window_should_close(window):
     rot_x = pyrr.Matrix44.from_x_rotation(0.5 * glfw.get_time())
     rot_y = pyrr.Matrix44.from_y_rotation(0.8 * glfw.get_time())
 
+    glUseProgram(shader)
     # glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x * rot_y)
     # glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x @ rot_y)
     glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, pyrr.matrix44.multiply(rot_x, rot_y))
-
+    glBindVertexArray(VAO)
     glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
+    glBindVertexArray(0)
+    glUseProgram(0)
 
     glfw.swap_buffers(window)
 

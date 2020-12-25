@@ -5,7 +5,6 @@ import pyrr
 from TextureLoader import load_texture
 import numpy as np
 
-
 mouse_x, mouse_y = 0, 0
 red_rot = False
 green_rot = False
@@ -25,10 +24,11 @@ def mouse_button_callback(window, button, action, mods):
 
 def pick():
     global red_rot, green_rot, blue_rot, picker
-
-    data = glReadPixels(mouse_x, mouse_y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE)
+    
+    data = glReadPixels(mouse_x, mouse_y, 1, 1, GL_RGB, GL_UNSIGNED_INT)
+    
     print(data[0], data[1], data[2])
-    # print(data)
+    
 
     if data[0] == 255:
         red_rot = not red_rot
@@ -90,6 +90,11 @@ def window_resize(window, width, height):
 if not glfw.init():
     raise Exception("glfw can not be initialized!")
 
+glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+
 # creating the window
 window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
 
@@ -99,7 +104,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # set the callback function for window resize
 glfw.set_window_size_callback(window, window_resize)
@@ -152,9 +157,6 @@ cube_indices = [ 0,  1,  2,  2,  3,  0,
 
 cube_indices = np.array(cube_indices, dtype=np.uint32)
 
-
-shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
-
 # VAO and VBO
 VAO = glGenVertexArrays(1)
 VBO = glGenBuffers(1)
@@ -162,6 +164,8 @@ EBO = glGenBuffers(1)
 
 # Cube VAO
 glBindVertexArray(VAO)
+
+shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 # Cube Vertex Buffer Object
 glBindBuffer(GL_ARRAY_BUFFER, VBO)
 glBufferData(GL_ARRAY_BUFFER, cube_buffer.nbytes, cube_buffer, GL_STATIC_DRAW)

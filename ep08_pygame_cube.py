@@ -1,12 +1,11 @@
 import os
-os.environ['SDL_VIDEO_WINDOW_POS'] = '400,200'
+os.environ['SDL_VIDEO_WINDOW_POS'] = '100,100'
 
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 import pygame
 import numpy as np
 import pyrr
-
 
 vertex_src = """
 # version 330
@@ -85,7 +84,15 @@ vertices = np.array(vertices, dtype=np.float32)
 indices = np.array(indices, dtype=np.uint32)
 
 pygame.init()
+
+pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, 4)
+pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, 1)
+pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
+
 pygame.display.set_mode((1280, 720), pygame.OPENGL|pygame.DOUBLEBUF|pygame.RESIZABLE)
+
+VAO = glGenVertexArrays(1)
+glBindVertexArray(VAO)
 
 shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 
@@ -110,9 +117,11 @@ glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertices.itemsize * 8, ctypes.c_
 
 texture = glGenTextures(1)
 glBindTexture(GL_TEXTURE_2D, texture)
+
 # Set the texture wrapping parameters
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+
 # Set texture filtering parameters
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
@@ -123,13 +132,18 @@ image_width, image_height = image.get_rect().size
 img_data = pygame.image.tostring(image, "RGBA")
 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
 
-glUseProgram(shader)
+glBindVertexArray(0)
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
+
 glClearColor(0, 0.1, 0.1, 1)
 glEnable(GL_DEPTH_TEST)
 glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+glUseProgram(shader)
 rotation_loc = glGetUniformLocation(shader, "rotation")
+glUseProgram(0)
 
 running = True
 
@@ -143,15 +157,20 @@ while running:
     ct = pygame.time.get_ticks() / 1000
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
+    
+    glUseProgram(shader)
     rot_x = pyrr.Matrix44.from_x_rotation(0.5 * ct)
     rot_y = pyrr.Matrix44.from_y_rotation(0.8 * ct)
-
+    
     # glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x * rot_y)
     # glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x @ rot_y)
     glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, pyrr.matrix44.multiply(rot_x, rot_y))
-
+    
+    glBindVertexArray(VAO)
     glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
+    glBindVertexArray(0)
+
+    glUseProgram(0)
 
     pygame.display.flip()
 

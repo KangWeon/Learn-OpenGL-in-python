@@ -116,6 +116,11 @@ def window_resize(window, width, height):
 if not glfw.init():
     raise Exception("glfw can not be initialized!")
 
+glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+
 # creating the window
 window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
 
@@ -125,7 +130,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # set the callback function for window resize
 glfw.set_window_size_callback(window, window_resize)
@@ -152,8 +157,6 @@ plane_buffer = np.array(plane_buffer, dtype=np.float32)
 plane_indices = [0, 1, 2, 2, 3, 0]
 plane_indices = np.array(plane_indices, dtype=np.uint32)
 
-shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
-
 # VAO and VBO
 VAO = glGenVertexArrays(2)
 VBO = glGenBuffers(2)
@@ -161,6 +164,8 @@ EBO = glGenBuffers(1)
 
 # Chibi VAO
 glBindVertexArray(VAO[0])
+
+shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 # Chibi Vertex Buffer Object
 glBindBuffer(GL_ARRAY_BUFFER, VBO[0])
 glBufferData(GL_ARRAY_BUFFER, chibi_buffer.nbytes, chibi_buffer, GL_STATIC_DRAW)

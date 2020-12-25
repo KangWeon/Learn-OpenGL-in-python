@@ -17,7 +17,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # make the context current
 glfw.make_context_current(window)
@@ -53,7 +53,7 @@ while not glfw.window_should_close(window):
     glScale(abs(sin(ct)), abs(sin(ct)), 1)
     glRotatef(sin(ct) * 45, 0, 0, 1)
     glTranslatef(sin(ct), cos(ct), 0)
-
+    
     glDrawArrays(GL_TRIANGLES, 0, 3)
 
     glfw.swap_buffers(window)

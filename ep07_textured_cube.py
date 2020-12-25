@@ -52,6 +52,11 @@ def window_resize(window, width, height):
 if not glfw.init():
     raise Exception("glfw can not be initialized!")
 
+glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+
 # creating the window
 window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
 
@@ -61,7 +66,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # set the callback function for window resize
 glfw.set_window_size_callback(window, window_resize)
@@ -109,6 +114,9 @@ indices = [0,  1,  2,  2,  3,  0,
 vertices = np.array(vertices, dtype=np.float32)
 indices = np.array(indices, dtype=np.uint32)
 
+VAO = glGenVertexArrays(1)
+glBindVertexArray(VAO)
+
 shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 
 # Vertex Buffer Object
@@ -147,13 +155,18 @@ img_data = image.convert("RGBA").tobytes()
 # img_data = np.array(image.getdata(), np.uint8) # second way of getting the raw image data
 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
 
-glUseProgram(shader)
+glBindVertexArray(0)
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
+
 glClearColor(0, 0.1, 0.1, 1)
 glEnable(GL_DEPTH_TEST)
 glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+glUseProgram(shader)
 rotation_loc = glGetUniformLocation(shader, "rotation")
+glUseProgram(0)
 
 # the main application loop
 while not glfw.window_should_close(window):
@@ -163,11 +176,13 @@ while not glfw.window_should_close(window):
 
     rot_x = pyrr.Matrix44.from_x_rotation(0.5 * glfw.get_time())
     rot_y = pyrr.Matrix44.from_y_rotation(0.8 * glfw.get_time())
-
+    
+    glUseProgram(shader)
+    glBindVertexArray(VAO)
     glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, pyrr.matrix44.multiply(rot_x, rot_y))
-
     glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
-
+    glBindVertexArray(0)
+    glUseProgram(0)
     glfw.swap_buffers(window)
 
 # terminate glfw, free up allocated resources

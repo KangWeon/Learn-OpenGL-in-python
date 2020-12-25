@@ -53,6 +53,11 @@ def window_resize(window, width, height):
 if not glfw.init():
     raise Exception("glfw can not be initialized!")
 
+glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+
 # creating the window
 window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
 
@@ -62,7 +67,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # set the callback function for window resize
 glfw.set_window_size_callback(window, window_resize)
@@ -74,8 +79,6 @@ glfw.make_context_current(window)
 chibi_indices, chibi_buffer = ObjLoader.load_model("meshes/chibi.obj")
 monkey_indices, monkey_buffer = ObjLoader.load_model("meshes/monkey.obj")
 
-shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
-
 # VAO and VBO
 VAO = glGenVertexArrays(2)
 VBO = glGenBuffers(2)
@@ -83,6 +86,8 @@ VBO = glGenBuffers(2)
 
 # Chibi VAO
 glBindVertexArray(VAO[0])
+
+shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 # Chibi Vertex Buffer Object
 glBindBuffer(GL_ARRAY_BUFFER, VBO[0])
 glBufferData(GL_ARRAY_BUFFER, chibi_buffer.nbytes, chibi_buffer, GL_STATIC_DRAW)
@@ -100,6 +105,9 @@ glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, chibi_buffer.itemsize * 8, ctype
 glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, chibi_buffer.itemsize * 8, ctypes.c_void_p(20))
 glEnableVertexAttribArray(2)
 
+glBindVertexArray(0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
+
 # Monkey VAO
 glBindVertexArray(VAO[1])
 # Monkey Vertex Buffer Object
@@ -116,12 +124,14 @@ glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, monkey_buffer.itemsize * 8, ctyp
 glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, monkey_buffer.itemsize * 8, ctypes.c_void_p(20))
 glEnableVertexAttribArray(2)
 
+glBindVertexArray(0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 textures = glGenTextures(2)
 load_texture("meshes/chibi.png", textures[0])
 load_texture("meshes/monkey.jpg", textures[1])
 
-glUseProgram(shader)
+
 glClearColor(0, 0.1, 0.1, 1)
 glEnable(GL_DEPTH_TEST)
 glEnable(GL_BLEND)
@@ -134,12 +144,14 @@ monkey_pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([-4, 0, 0]))
 # eye, target, up
 view = pyrr.matrix44.create_look_at(pyrr.Vector3([0, 0, 8]), pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 1, 0]))
 
+glUseProgram(shader)
 model_loc = glGetUniformLocation(shader, "model")
 proj_loc = glGetUniformLocation(shader, "projection")
 view_loc = glGetUniformLocation(shader, "view")
 
 glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
 glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
+glUseProgram(0)
 
 # the main application loop
 while not glfw.window_should_close(window):
@@ -149,13 +161,15 @@ while not glfw.window_should_close(window):
 
     rot_y = pyrr.Matrix44.from_y_rotation(0.8 * glfw.get_time())
     model = pyrr.matrix44.multiply(rot_y, chibi_pos)
-
+    
+    glUseProgram(shader)
     # draw the chibi character
     glBindVertexArray(VAO[0])
     glBindTexture(GL_TEXTURE_2D, textures[0])
     glUniformMatrix4fv(model_loc, 1, GL_FALSE, model)
     glDrawArrays(GL_TRIANGLES, 0, len(chibi_indices))
     # glDrawElements(GL_TRIANGLES, len(chibi_indices), GL_UNSIGNED_INT, None)
+    glBindVertexArray(0)
 
     rot_y = pyrr.Matrix44.from_y_rotation(-0.8 * glfw.get_time())
     model = pyrr.matrix44.multiply(rot_y, monkey_pos)
@@ -165,7 +179,9 @@ while not glfw.window_should_close(window):
     glBindTexture(GL_TEXTURE_2D, textures[1])
     glUniformMatrix4fv(model_loc, 1, GL_FALSE, model)
     glDrawArrays(GL_TRIANGLES, 0, len(monkey_indices))
+    glBindVertexArray(0)
 
+    glUseProgram(0)
     glfw.swap_buffers(window)
 
 # terminate glfw, free up allocated resources

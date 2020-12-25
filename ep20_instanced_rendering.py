@@ -117,6 +117,11 @@ def window_resize_clb(window, width, height):
 if not glfw.init():
     raise Exception("glfw can not be initialized!")
 
+glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+
 # creating the window
 window = glfw.create_window(WIDTH, HEIGHT, "My OpenGL window", None, None)
 
@@ -126,7 +131,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # set the callback function for window resize
 glfw.set_window_size_callback(window, window_resize_clb)
@@ -183,8 +188,6 @@ cube_indices = [ 0,  1,  2,  2,  3,  0,
 
 cube_indices = np.array(cube_indices, dtype=np.uint32)
 
-shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
-
 # VAO, VBO and EBO
 VAO = glGenVertexArrays(1)
 VBO = glGenBuffers(1)
@@ -192,6 +195,8 @@ EBO = glGenBuffers(1)
 
 # cube VAO
 glBindVertexArray(VAO)
+
+shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 # cube Vertex Buffer Object
 glBindBuffer(GL_ARRAY_BUFFER, VBO)
 glBufferData(GL_ARRAY_BUFFER, cube_buffer.nbytes, cube_buffer, GL_STATIC_DRAW)

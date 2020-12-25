@@ -37,6 +37,11 @@ def window_resize(window, width, height):
 if not glfw.init():
     raise Exception("glfw can not be initialized!")
 
+glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+
 # creating the window
 window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
 
@@ -46,7 +51,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # set the callback function for window resize
 glfw.set_window_size_callback(window, window_resize)
@@ -67,6 +72,9 @@ indices = [0, 1, 2,
 vertices = np.array(vertices, dtype=np.float32)
 indices = np.array(indices, dtype=np.uint32)
 
+VAO = glGenVertexArrays(1)
+glBindVertexArray(VAO)
+
 shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 
 # Vertex Buffer Object
@@ -85,7 +93,10 @@ glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(0))
 glEnableVertexAttribArray(1)
 glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(12))
 
-glUseProgram(shader)
+glBindVertexArray(0)
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
+
 glClearColor(0, 0.1, 0.1, 1)
 
 # the main application loop
@@ -93,9 +104,12 @@ while not glfw.window_should_close(window):
     glfw.poll_events()
 
     glClear(GL_COLOR_BUFFER_BIT)
-
+    glUseProgram(shader)
+    glBindVertexArray(VAO)
     glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
-
+    glBindVertexArray(0)
+    glUseProgram(0)
+    
     glfw.swap_buffers(window)
 
 # terminate glfw, free up allocated resources

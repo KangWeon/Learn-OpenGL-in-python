@@ -1,5 +1,5 @@
 import os
-os.environ['SDL_VIDEO_WINDOW_POS'] = '400,200'
+os.environ['SDL_VIDEO_WINDOW_POS'] = '100,100'
 
 import pygame
 from OpenGL.GL import *
@@ -52,7 +52,6 @@ void main()
 }
 """
 
-
 def mouse_look(xpos, ypos):
     global first_mouse, lastX, lastY
 
@@ -69,8 +68,12 @@ def mouse_look(xpos, ypos):
 
     cam.process_mouse_movement(xoffset, yoffset)
 
-
 pygame.init()
+
+pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, 4)
+pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, 1)
+pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
+
 pygame.display.set_mode((WIDTH, HEIGHT), pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE) # |pygame.FULLSCREEN
 pygame.mouse.set_visible(False)
 pygame.event.set_grab(True)
@@ -80,8 +83,6 @@ cube_indices, cube_buffer = ObjLoader.load_model("meshes/cube.obj", False)
 monkey_indices, monkey_buffer = ObjLoader.load_model("meshes/monkey.obj")
 floor_indices, floor_buffer = ObjLoader.load_model("meshes/floor.obj")
 
-shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
-
 # VAO and VBO
 VAO = glGenVertexArrays(3)
 VBO = glGenBuffers(3)
@@ -89,6 +90,9 @@ EBO = glGenBuffers(1)
 
 # cube VAO
 glBindVertexArray(VAO[0])
+
+shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
+
 # cube Vertex Buffer Object
 glBindBuffer(GL_ARRAY_BUFFER, VBO[0])
 glBufferData(GL_ARRAY_BUFFER, cube_buffer.nbytes, cube_buffer, GL_STATIC_DRAW)
@@ -99,12 +103,18 @@ glBufferData(GL_ELEMENT_ARRAY_BUFFER, cube_indices.nbytes, cube_indices, GL_STAT
 # cube vertices
 glEnableVertexAttribArray(0)
 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, cube_buffer.itemsize * 8, ctypes.c_void_p(0))
+
 # cube textures
 glEnableVertexAttribArray(1)
 glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, cube_buffer.itemsize * 8, ctypes.c_void_p(12))
+
 # cube normals
 glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, cube_buffer.itemsize * 8, ctypes.c_void_p(20))
 glEnableVertexAttribArray(2)
+
+glBindVertexArray(0)
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 # monkey VAO
 glBindVertexArray(VAO[1])
@@ -122,6 +132,9 @@ glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, monkey_buffer.itemsize * 8, ctyp
 glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, monkey_buffer.itemsize * 8, ctypes.c_void_p(20))
 glEnableVertexAttribArray(2)
 
+glBindVertexArray(0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
+
 # floor VAO
 glBindVertexArray(VAO[2])
 # floor Vertex Buffer Object
@@ -138,6 +151,8 @@ glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, floor_buffer.itemsize * 8, ctype
 glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, floor_buffer.itemsize * 8, ctypes.c_void_p(20))
 glEnableVertexAttribArray(2)
 
+glBindVertexArray(0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 textures = glGenTextures(3)
 load_texture_pygame("meshes/cube.jpg", textures[0])
@@ -194,7 +209,6 @@ while running:
         pygame.mouse.set_pos((1279, mouse_pos[1]))
     elif mouse_pos[0] >= 1279:
         pygame.mouse.set_pos((0, mouse_pos[1]))
-
 
     ct = pygame.time.get_ticks() / 1000
 

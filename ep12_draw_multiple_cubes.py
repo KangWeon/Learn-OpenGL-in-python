@@ -5,7 +5,6 @@ import numpy as np
 import pyrr
 from TextureLoader import load_texture
 
-
 vertex_src = """
 # version 330
 
@@ -41,7 +40,6 @@ void main()
 }
 """
 
-
 # glfw callback functions
 def window_resize(window, width, height):
     glViewport(0, 0, width, height)
@@ -52,6 +50,11 @@ def window_resize(window, width, height):
 if not glfw.init():
     raise Exception("glfw can not be initialized!")
 
+glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+
 # creating the window
 window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
 
@@ -61,7 +64,7 @@ if not window:
     raise Exception("glfw window can not be created!")
 
 # set window's position
-glfw.set_window_pos(window, 400, 200)
+glfw.set_window_pos(window, 100, 100)
 
 # set the callback function for window resize
 glfw.set_window_size_callback(window, window_resize)
@@ -109,6 +112,9 @@ indices = [ 0,  1,  2,  2,  3,  0,
 vertices = np.array(vertices, dtype=np.float32)
 indices = np.array(indices, dtype=np.uint32)
 
+VAO = glGenVertexArrays(1)
+glBindVertexArray(VAO)
+
 shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 
 # Vertex Buffer Object
@@ -133,7 +139,11 @@ cube1_texture = load_texture("textures/crate.jpg", texture[0])
 cube2_texture = load_texture("textures/cat.png", texture[1])
 cube3_texture = load_texture("textures/smiley.png", texture[2])
 
-glUseProgram(shader)
+glBindVertexArray(0)
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+
 glClearColor(0, 0.1, 0.1, 1)
 glEnable(GL_DEPTH_TEST)
 glEnable(GL_BLEND)
@@ -147,13 +157,16 @@ cube3 = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 1, -3]))
 # eye, target, up
 view = pyrr.matrix44.create_look_at(pyrr.Vector3([0, 0, 3]), pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 1, 0]))
 
+glUseProgram(shader)
+
 model_loc = glGetUniformLocation(shader, "model")
 proj_loc = glGetUniformLocation(shader, "projection")
 view_loc = glGetUniformLocation(shader, "view")
 
 glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
-
 glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
+
+glUseProgram(0)
 
 # the main application loop
 while not glfw.window_should_close(window):
@@ -166,9 +179,12 @@ while not glfw.window_should_close(window):
 
     rotation = pyrr.matrix44.multiply(rot_x, rot_y)
     model = pyrr.matrix44.multiply(rotation, cube1)
-
+    
+    glUseProgram(shader)
     glBindTexture(GL_TEXTURE_2D, texture[0])
     glUniformMatrix4fv(model_loc, 1, GL_FALSE, model)
+
+    glBindVertexArray(VAO)
     glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
 
     model = pyrr.matrix44.multiply(rot_x, cube2)
@@ -182,6 +198,9 @@ while not glfw.window_should_close(window):
     glBindTexture(GL_TEXTURE_2D, texture[2])
     glUniformMatrix4fv(model_loc, 1, GL_FALSE, model)
     glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
+
+    glBindVertexArray(0)
+    glUseProgram(0)
 
     glfw.swap_buffers(window)
 
