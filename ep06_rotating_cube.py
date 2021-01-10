@@ -4,131 +4,136 @@ from OpenGL.GL.shaders import compileProgram, compileShader
 import numpy as np
 import pyrr
 
-vertex_src = """
-# version 330
 
-layout(location = 0) in vec3 a_position;
-layout(location = 1) in vec3 a_color;
+def main():
+    vertex_src = """
+    # version 330
 
-uniform mat4 rotation;
+    layout(location = 0) in vec3 a_position;
+    layout(location = 1) in vec3 a_color;
 
-out vec3 v_color;
+    uniform mat4 rotation;
 
-void main()
-{
-    gl_Position = rotation * vec4(a_position, 1.0);
-    v_color = a_color;
-}
-"""
+    out vec3 v_color;
 
-fragment_src = """
-# version 330
+    void main()
+    {
+        gl_Position = rotation * vec4(a_position, 1.0);
+        v_color = a_color;
+    }
+    """
 
-in vec3 v_color;
-out vec4 out_color;
+    fragment_src = """
+    # version 330
 
-void main()
-{
-    out_color = vec4(v_color, 1.0);
-}
-"""
+    in vec3 v_color;
+    out vec4 out_color;
 
-def window_resize(window, width, height):
-    glViewport(0, 0, width, height)
+    void main()
+    {
+        out_color = vec4(v_color, 1.0);
+    }
+    """
 
-# initializing glfw library
-if not glfw.init():
-    raise Exception("glfw can not be initialized!")
+    def window_resize(window, width, height):
+        glViewport(0, 0, width, height)
 
-glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
-glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 1)
-glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+    # initializing glfw library
+    if not glfw.init():
+        raise Exception("glfw can not be initialized!")
 
-# creating the window
-window = glfw.create_window(1024, 768, "My OpenGL window", None, None)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 1)
+    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+    glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
 
-# check if window was created
-if not window:
-    glfw.terminate()
-    raise Exception("glfw window can not be created!")
+    # creating the window
+    window = glfw.create_window(1024, 768, "My OpenGL window", None, None)
 
-# set window's position
-glfw.set_window_pos(window, 100, 100)
+    # check if window was created
+    if not window:
+        glfw.terminate()
+        raise Exception("glfw window can not be created!")
 
-# set the callback function for window resize
-glfw.set_window_size_callback(window, window_resize)
+    # set window's position
+    glfw.set_window_pos(window, 100, 100)
 
-# make the context current
-glfw.make_context_current(window)
+    # set the callback function for window resize
+    glfw.set_window_size_callback(window, window_resize)
 
-vertices = [-0.5, -0.5, 0.5, 1.0, 0.0, 0.0,
-             0.5, -0.5, 0.5, 0.0, 1.0, 0.0,
-             0.5,  0.5, 0.5, 0.0, 0.0, 1.0,
-            -0.5,  0.5, 0.5, 1.0, 1.0, 1.0,
+    # make the context current
+    glfw.make_context_current(window)
 
-            -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
-             0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
-             0.5,  0.5, -0.5, 0.0, 0.0, 1.0,
-            -0.5,  0.5, -0.5, 1.0, 1.0, 1.0]
+    vertices = [-0.5, -0.5, 0.5, 1.0, 0.0, 0.0,
+                 0.5, -0.5, 0.5, 0.0, 1.0, 0.0,
+                 0.5,  0.5, 0.5, 0.0, 0.0, 1.0,
+                -0.5,  0.5, 0.5, 1.0, 1.0, 1.0,
 
-indices = [0, 1, 2, 2, 3, 0,
-           4, 5, 6, 6, 7, 4,
-           4, 5, 1, 1, 0, 4,
-           6, 7, 3, 3, 2, 6,
-           5, 6, 2, 2, 1, 5,
-           7, 4, 0, 0, 3, 7]
+                -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
+                 0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
+                 0.5,  0.5, -0.5, 0.0, 0.0, 1.0,
+                -0.5,  0.5, -0.5, 1.0, 1.0, 1.0]
 
-vertices = np.array(vertices, dtype=np.float32)
-indices = np.array(indices, dtype=np.uint32)
+    indices = [0, 1, 2, 2, 3, 0,
+               4, 5, 6, 6, 7, 4,
+               4, 5, 1, 1, 0, 4,
+               6, 7, 3, 3, 2, 6,
+               5, 6, 2, 2, 1, 5,
+               7, 4, 0, 0, 3, 7]
 
-VAO = glGenVertexArrays(1)
-glBindVertexArray(VAO)
+    vertices = np.array(vertices, dtype=np.float32)
+    indices = np.array(indices, dtype=np.uint32)
 
-shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
-
-# Vertex Buffer Object
-VBO = glGenBuffers(1)
-glBindBuffer(GL_ARRAY_BUFFER, VBO)
-glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
-
-# Element Buffer Object
-EBO = glGenBuffers(1)
-glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
-glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
-
-glEnableVertexAttribArray(0)
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(0))
-
-glEnableVertexAttribArray(1)
-glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(12))
-
-glBindVertexArray(0)
-
-glClearColor(0, 0.1, 0.1, 1)
-glEnable(GL_DEPTH_TEST)
-
-rotation_loc = glGetUniformLocation(shader, "rotation")
-
-# the main application loop
-while not glfw.window_should_close(window):
-    glfw.poll_events()
-
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-
-    rot_x = pyrr.Matrix44.from_x_rotation(0.5 * glfw.get_time())
-    rot_y = pyrr.Matrix44.from_y_rotation(0.8 * glfw.get_time())
-
-    glUseProgram(shader)
-    # glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x * rot_y)
-    # glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x @ rot_y)
-    glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, pyrr.matrix44.multiply(rot_x, rot_y))
+    VAO = glGenVertexArrays(1)
     glBindVertexArray(VAO)
-    glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
+
+    shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
+
+    # Vertex Buffer Object
+    VBO = glGenBuffers(1)
+    glBindBuffer(GL_ARRAY_BUFFER, VBO)
+    glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+
+    # Element Buffer Object
+    EBO = glGenBuffers(1)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+
+    glEnableVertexAttribArray(0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(0))
+
+    glEnableVertexAttribArray(1)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(12))
+
     glBindVertexArray(0)
-    glUseProgram(0)
 
-    glfw.swap_buffers(window)
+    glClearColor(0, 0.1, 0.1, 1)
+    glEnable(GL_DEPTH_TEST)
 
-# terminate glfw, free up allocated resources
-glfw.terminate()
+    rotation_loc = glGetUniformLocation(shader, "rotation")
+
+    # the main application loop
+    while not glfw.window_should_close(window):
+        glfw.poll_events()
+
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+
+        rot_x = pyrr.Matrix44.from_x_rotation(0.5 * glfw.get_time())
+        rot_y = pyrr.Matrix44.from_y_rotation(0.8 * glfw.get_time())
+
+        glUseProgram(shader)
+        # glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x * rot_y)
+        # glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x @ rot_y)
+        glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, pyrr.matrix44.multiply(rot_x, rot_y))
+        glBindVertexArray(VAO)
+        glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
+        glBindVertexArray(0)
+        glUseProgram(0)
+
+        glfw.swap_buffers(window)
+
+    # terminate glfw, free up allocated resources
+    glfw.terminate()
+
+if __name__ == "__main__":
+    main()
