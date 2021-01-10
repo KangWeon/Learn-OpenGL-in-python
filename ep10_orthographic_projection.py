@@ -13,7 +13,7 @@ def window_resize(window, width, height):
     glUseProgram(shader)
     proj_loc = glGetUniformLocation(shader, "projection")
     glViewport(0, 0, width, height)
-    projection = pyrr.matrix44.create_identity()
+    projection = pyrr.matrix44.create_orthogonal_projection_matrix(0, width, 0, height, -1000, 1000)
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
     glUseProgram(0)
 
