@@ -1,5 +1,6 @@
-import glfw
+import platform as pltf
 from OpenGL.GL import *
+import glfw
 import numpy as np
 from math import sin, cos
 
@@ -10,7 +11,7 @@ def main():
     # initializing glfw library
     if not glfw.init():
         raise Exception("glfw can not be initialized!")
-
+    
     # creating the window
     window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
 

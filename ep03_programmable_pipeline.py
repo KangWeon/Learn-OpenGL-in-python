@@ -1,8 +1,8 @@
-import glfw
+import platform as pltf
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
+import glfw
 import numpy as np
-
 
 def main():
     vertex_src = """
@@ -36,10 +36,16 @@ def main():
     if not glfw.init():
         raise Exception("glfw can not be initialized!")
 
-    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
-    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
-    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-    glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+    if "Windows" in pltf.platform():
+        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 6)
+        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+    else:
+        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 1)
+        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
 
     # creating the window
     window = glfw.create_window(1280, 720, "My OpenGL window", None, None)

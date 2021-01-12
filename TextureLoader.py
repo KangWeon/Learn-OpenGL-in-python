@@ -4,7 +4,6 @@ from OpenGL.GL import glBindTexture, glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_
 
 from PIL import Image
 
-
 # for use with GLFW
 def load_texture(path, texture):
     glBindTexture(GL_TEXTURE_2D, texture)

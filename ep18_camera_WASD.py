@@ -1,6 +1,7 @@
-import glfw
+import platform as pltf
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
+import glfw
 import pyrr
 from TextureLoader import load_texture
 from ObjLoader import ObjLoader
@@ -128,10 +129,16 @@ def main():
     if not glfw.init():
         raise Exception("glfw can not be initialized!")
 
-    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
-    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
-    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-    glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+    if "Windows" in pltf.platform():
+        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 6)
+        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+    else:
+        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 1)
+        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
 
     # creating the window
     window = glfw.create_window(WIDTH, HEIGHT, "My OpenGL window", None, None)
@@ -279,6 +286,6 @@ def main():
 
     # terminate glfw, free up allocated resources
     glfw.terminate()
-
+    
 if __name__ == "__main__":
     main()

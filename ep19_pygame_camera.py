@@ -1,6 +1,6 @@
 import os
 os.environ['SDL_VIDEO_WINDOW_POS'] = '100,100'
-
+import sys
 import pygame
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
@@ -248,7 +248,7 @@ def main():
         pygame.display.flip()
 
     pygame.quit()
-
+    sys.exit()
     
 if __name__ == "__main__":
     main()
